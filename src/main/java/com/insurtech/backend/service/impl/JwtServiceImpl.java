@@ -20,6 +20,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Slf4j
@@ -45,6 +46,8 @@ public class JwtServiceImpl implements JwtService {
     }
 
     public String generateAccessToken(User user) {
+        if (Objects.isNull(user)) throw new RuntimeException("User is null!");
+
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(user.getId().toString())

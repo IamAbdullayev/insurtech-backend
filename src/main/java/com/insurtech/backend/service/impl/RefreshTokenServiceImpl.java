@@ -3,7 +3,7 @@ package com.insurtech.backend.service.impl;
 import com.insurtech.backend.Utils.HashUtil;
 import com.insurtech.backend.domain.entity.RefreshToken;
 import com.insurtech.backend.domain.entity.User;
-import com.insurtech.backend.domain.enums.TokenStatus;
+import com.insurtech.backend.domain.enums.RefreshTokenStatus;
 import com.insurtech.backend.exception.AuthException;
 import com.insurtech.backend.exception.ErrorCode;
 import com.insurtech.backend.repository.RefreshTokenRepository;
@@ -29,10 +29,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Value("${spring.auth.jwt.refresh-token-ttl-days}")
     private long refreshTokenTtlDays;
 
-    // -------------------------------------------------------------------------
-    // Create
-    // -------------------------------------------------------------------------
-
     /**
      * Issues a new refresh token.
      *
@@ -54,7 +50,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 .tokenHash(HashUtil.sha256Hex(rawToken))
                 .user(user)
                 .familyId(familyId)
-                .status(TokenStatus.ACTIVE)
+                .status(RefreshTokenStatus.ACTIVE)
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(refreshTokenTtlDays * 86_400L))
                 .userAgent(userAgent)
@@ -65,10 +61,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         log.info("Refresh token was issued successfully. familyId: {}", familyId);
         return rawToken;
     }
-
-    // -------------------------------------------------------------------------
-    // Rotate (consume current, issue new)
-    // -------------------------------------------------------------------------
 
     /**
      * Core of Refresh Token Rotation with reuse detection.
@@ -83,7 +75,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         RefreshToken current = refreshTokenRepository.findByTokenHash(HashUtil.sha256Hex(rawToken))
                 .orElseThrow(() -> new AuthException(ErrorCode.TOKEN_INVALID, "Refresh token not found."));
 
-        if (TokenStatus.USED.equals(current.getStatus())) {
+        if (RefreshTokenStatus.USED.equals(current.getStatus())) {
             log.warn("SECURITY: Refresh token reuse detected — revoking entire family {} | UserId: {}",
                     current.getFamilyId(), current.getUser().getId());
             refreshTokenRepository.revokeFamily(current.getFamilyId());
@@ -91,7 +83,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                     "Refresh token reuse detected. All sessions invalidated. Please log in again.");
         }
 
-        if (TokenStatus.REVOKED.equals(current.getStatus())) {
+        if (RefreshTokenStatus.REVOKED.equals(current.getStatus())) {
             log.info("Refresh token has been revoked — familyId: {} | UserId: {}",
                     current.getFamilyId(), current.getUser().getId());
             throw new AuthException(ErrorCode.TOKEN_REVOKED, "Refresh token has been revoked");
@@ -100,13 +92,13 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         if (current.getExpiresAt().isBefore(Instant.now())) {
             log.info("Refresh token has been expired — familyId: {} | UserId: {}",
                     current.getFamilyId(), current.getUser().getId());
-            current.setStatus(TokenStatus.REVOKED);
+            current.setStatus(RefreshTokenStatus.REVOKED);
             refreshTokenRepository.save(current);
             throw new AuthException(ErrorCode.TOKEN_EXPIRED, "Refresh token has been expired");
         }
 
         // Mark the current token as USED (not deleted — kept for audit/reuse detection)
-        current.setStatus(TokenStatus.USED);
+        current.setStatus(RefreshTokenStatus.USED);
         current.setUsedAt(Instant.now());
         refreshTokenRepository.save(current);
 
@@ -116,27 +108,18 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         return new RotationResult(current.getUser(), newRawToken);
     }
 
-    // -------------------------------------------------------------------------
-    // Revocation
-    // -------------------------------------------------------------------------
-
     @Transactional
     public void revokeToken(String rawToken) {
-        String hash = HashUtil.sha256Hex(rawToken);
-        refreshTokenRepository.findByTokenHash(hash).ifPresent(t -> {
-            t.setStatus(TokenStatus.REVOKED);
-            refreshTokenRepository.save(t);
-        });
+        refreshTokenRepository.findByTokenHash(HashUtil.sha256Hex(rawToken))
+                .ifPresent(t -> {t.setStatus(RefreshTokenStatus.REVOKED);
+                    refreshTokenRepository.save(t);
+                });
     }
 
     @Transactional
     public int revokeAllForUser(UUID userId) {
         return refreshTokenRepository.revokeAllActiveForUser(userId);
     }
-
-    // -------------------------------------------------------------------------
-    // Value object for rotation result
-    // -------------------------------------------------------------------------
 
     public record RotationResult(User user, String newRawToken) {};
 }

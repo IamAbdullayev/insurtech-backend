@@ -1,6 +1,6 @@
 package com.insurtech.backend.domain.entity;
 
-import com.insurtech.backend.domain.enums.TokenStatus;
+import com.insurtech.backend.domain.enums.RefreshTokenStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -54,7 +54,7 @@ public class RefreshToken {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private TokenStatus status;
+    private RefreshTokenStatus status;
 
     @Column(nullable = false, updatable = false)
     private Instant issuedAt;

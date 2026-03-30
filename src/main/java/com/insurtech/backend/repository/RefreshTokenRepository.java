@@ -18,7 +18,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID
     @Modifying(clearAutomatically = true)
     @Query("""
         UPDATE RefreshToken rt
-        SET rt.status = com.insurtech.backend.domain.enums.TokenStatus.REVOKED
+        SET rt.status = com.insurtech.backend.domain.enums.RefreshTokenStatus.REVOKED
         WHERE rt.familyId = :familyId
         """)
     void revokeFamily(@Param("familyId") UUID familyId);
@@ -26,9 +26,9 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID
     // Logout-all-devices (revoke all refresh tokens with the specified userId)
     @Modifying(clearAutomatically = true)
     @Query("""
-        UPDATE RefreshToken rt SET rt.status = com.insurtech.backend.domain.enums.TokenStatus.REVOKED
+        UPDATE RefreshToken rt SET rt.status = com.insurtech.backend.domain.enums.RefreshTokenStatus.REVOKED
         WHERE rt.user.id = :userId
-            AND rt.status = com.insurtech.backend.domain.enums.TokenStatus.ACTIVE
+            AND rt.status = com.insurtech.backend.domain.enums.RefreshTokenStatus.ACTIVE
         """)
     int revokeAllActiveForUser(@Param("userId") UUID userId);
 

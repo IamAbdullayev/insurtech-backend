@@ -38,3 +38,6 @@ spring:
       - /auth/login
       - /auth/refresh
       - /actuator/health
+
+  scheduler:
+    refresh-token-clean-up: "0 0 2 * * *"

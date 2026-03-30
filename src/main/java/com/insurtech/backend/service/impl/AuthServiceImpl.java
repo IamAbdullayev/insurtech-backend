@@ -4,51 +4,118 @@ import com.insurtech.backend.domain.enums.UserRole;
 import com.insurtech.backend.domain.enums.UserStatus;
 import com.insurtech.backend.dto.api.request.LoginRequest;
 import com.insurtech.backend.dto.api.request.RegisterRequest;
-import com.insurtech.backend.dto.api.response.AuthResponse;
 import com.insurtech.backend.domain.entity.User;
-import com.insurtech.backend.exception.AlreadyExistException;
-import com.insurtech.backend.exception.InvalidCredentialsException;
+import com.insurtech.backend.dto.api.response.TokenResponse;
+import com.insurtech.backend.exception.AuthException;
+import com.insurtech.backend.exception.ErrorCode;
 import com.insurtech.backend.repository.UserRepository;
+import com.insurtech.backend.security.CustomUserDetails;
 import com.insurtech.backend.service.AuthService;
-import io.micrometer.common.util.StringUtils;
+import com.insurtech.backend.service.JwtService;
+import com.insurtech.backend.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
+    private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
-    @Override
     @Transactional
     public void register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.email())) throw new AlreadyExistException(
-                    "User with this '%s' email already exist.".formatted(request.email()));
+        if (userRepository.existsByEmail(request.email())) {
+            log.info("User already exists. email: {}", request.email()); // Email must be masked!!!
+            // Intentionally vague to avoid user enumeration
+            throw new AuthException(ErrorCode.REGISTRATION_FAILED,
+                    "Registration could not be completed. Please try again.");
+        }
 
-        userRepository.save(User.builder()
+        User user = User.builder()
                 .firstName(request.firstName())
                 .lastName(request.lastName())
-                .email(request.email())
+                .email(request.email().toLowerCase().strip())
+                .passwordHash(passwordEncoder.encode(request.password()))
                 .roles(Set.of(UserRole.USER))
                 .status(UserStatus.ACTIVE)
-                .passwordHash(request.password()) // need to be hashed !!!!!
-                .build());
+                .build();
+
+        userRepository.save(user);
+        log.info("New user registered. userId: {}", user.getId());
     }
 
-    @Override
-    public AuthResponse login(LoginRequest request) {
-        String hashedUserPassword = userRepository.findPasswordByEmail(request.email());
-        String hashedLoginPassword = request.password(); // need to be hashed
+    @Transactional
+    public TokenResponse login(LoginRequest request, String userAgent, String ip) {
+        User user = null;
+        try {
+            var authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.email().toLowerCase().strip(),
+                            request.password()
+                    )
+            );
 
-        if (!hashedUserPassword.equals(hashedLoginPassword) ||
-                StringUtils.isEmpty(hashedUserPassword))
-            throw new InvalidCredentialsException("Email or password is invalid!");
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof CustomUserDetails customUserDetails) {
+                user = customUserDetails.user();
+            }
+        } catch (AuthenticationException ex) {
+            throw new AuthException(ErrorCode.INVALID_CREDENTIALS);
+        }
 
-        return AuthResponse.builder()
-                .token("Need to be generated !!!!! ")
-                .build();
+        if (Objects.isNull(user)) {
+            log.info("User is null: {}", user);
+            throw new AuthException(ErrorCode.INVALID_CREDENTIALS);
+        }
+
+        user.setLastLoginAt(Instant.now());
+        userRepository.save(user);
+
+        return TokenResponse.withRefresh(
+                jwtService.generateAccessToken(user),
+                "Bearer",
+                jwtService.getAccessTokenTtlSeconds(),
+                refreshTokenService.issue(user, null, userAgent, ip)
+        );
+    }
+
+    @Transactional
+    public TokenResponse refresh(String rawRefreshToken, String userAgent, String ip) {
+        RefreshTokenServiceImpl.RotationResult rotation = refreshTokenService.rotate(rawRefreshToken, userAgent, ip);
+
+        String accessToken = jwtService.generateAccessToken(rotation.user());
+
+        return TokenResponse.withRefresh(
+                accessToken,
+                "Bearer",
+                jwtService.getAccessTokenTtlSeconds(),
+                rotation.newRawToken()
+        );
+    }
+
+    @Transactional
+    public void revokeToken(String rawRefreshToken) {
+        refreshTokenService.revokeToken(rawRefreshToken);
+    }
+
+    @Transactional
+    public void logoutAll(UUID userId) {
+        int count = refreshTokenService.revokeAllForUser(userId);
+        log.info("User {} logged out from {} sessions", userId, count);
     }
 }
