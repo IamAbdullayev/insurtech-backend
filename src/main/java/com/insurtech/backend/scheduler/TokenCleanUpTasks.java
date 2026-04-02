@@ -16,7 +16,7 @@ import java.time.temporal.ChronoUnit;
 public class TokenCleanUpTasks {
     private final RefreshTokenRepository refreshTokenRepository;
 
-    @Scheduled(cron = "${spring.scheduler.refresh-token-clean-up}")
+    @Scheduled(cron = "${spring.scheduler.auth.refresh-token-clean-up}")
     @Transactional
     public void RefreshTokenCleanUp() {
         int deleted = refreshTokenRepository.deleteExpiredBefore(

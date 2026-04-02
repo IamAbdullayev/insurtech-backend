@@ -18,10 +18,10 @@ import java.util.List;
 @Configuration
 public class JwtDecoderConfig {
 
-    @Value("${spring.auth.jwt.issuer}")
+    @Value("${auth.jwt.issuer}")
     private String issuer;
 
-    @Value("${spring.auth.jwt.audience}")
+    @Value("${auth.jwt.audience}")
     private String audience;
 
     @Bean

@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 202604031230
+      author: ramazan-abdullayev
+      runOnChange: false
+      runAlways: false
+      failOnError: true
+      runInTransaction: true
+      changes:
+        - sqlFile:
+            path: db/changelog/sql/202604031230__create-auth-tables.sql
+            relativeToChangelogFile: false

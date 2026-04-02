@@ -3,9 +3,9 @@ spring:
     name: backend
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/insurtech-db
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: jdbc:postgresql://localhost:5433/${POSTGRES_DB:insurtech-db}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -13,6 +13,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
 
   cloud:
     aws:
@@ -24,23 +26,20 @@ spring:
         access-key: ${AWS_ACCESS_KEY_ID}
         secret-key: ${AWS_SECRET_ACCESS_KEY}
 
-  auth:
-    jwt:
-      issuer: ${JWT_ISSUER:https://auth.example.com}
-      audience: ${JWT_AUDIENCE:api}
-      access-token-ttl-seconds: ${ACCESS_TOKEN_TTL:900}       # 15 min
-      refresh-token-ttl-days: ${REFRESH_TOKEN_TTL_DAYS:7}
-      private-key-base64: ${JWT_PRIVATE_KEY}
-      public-key-base64: ${JWT_PUBLIC_KEY}
-                           
-                           "insurtech/v1/auth/login",
-                           "insurtech/v1/auth/register",
-                           "insurtech/v1/auth/refresh"
-    public-paths:
-      - /auth/register
-      - /auth/login
-      - /auth/refresh
-      - /actuator/health
-
   scheduler:
-    refresh-token-clean-up: "0 0 2 * * *"
+    auth:
+      refresh-token-clean-up: "0 0 2 * * *"
+
+auth:
+  jwt:
+    issuer: ${JWT_ISSUER:https://auth.example.com}
+    audience: ${JWT_AUDIENCE:api}
+    access-token-ttl-seconds: ${ACCESS_TOKEN_TTL:900}       # 15 min
+    refresh-token-ttl-days: ${REFRESH_TOKEN_TTL_DAYS:7}
+    private-key-base64: ${JWT_PRIVATE_KEY}
+    public-key-base64: ${JWT_PUBLIC_KEY}
+  public-paths:
+    - /insurtech/v1/auth/register
+    - /insurtech/v1/auth/login
+    - /insurtech/v1/auth/refresh
+    - /insurtech/v1/actuator/**

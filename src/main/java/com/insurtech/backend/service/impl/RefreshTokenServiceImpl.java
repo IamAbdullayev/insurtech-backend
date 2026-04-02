@@ -26,7 +26,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Getter
-    @Value("${spring.auth.jwt.refresh-token-ttl-days}")
+    @Value("${auth.jwt.refresh-token-ttl-days}")
     private long refreshTokenTtlDays;
 
     /**
@@ -121,5 +121,5 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         return refreshTokenRepository.revokeAllActiveForUser(userId);
     }
 
-    public record RotationResult(User user, String newRawToken) {};
+    public record RotationResult(User user, String newRawToken) {}
 }
