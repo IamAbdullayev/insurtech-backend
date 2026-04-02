@@ -15,6 +15,7 @@ import com.insurtech.backend.service.JwtService;
 import com.insurtech.backend.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -36,6 +37,8 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenService refreshTokenService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    @Value("${auth.jwt.access-token-ttl-seconds}")
+    private long accessTokenTtlSeconds;
 
     @Transactional
     public void register(RegisterRequest request) {
@@ -89,7 +92,7 @@ public class AuthServiceImpl implements AuthService {
         return TokenResponse.withRefresh(
                 jwtService.generateAccessToken(user),
                 "Bearer",
-                jwtService.getAccessTokenTtlSeconds(),
+                accessTokenTtlSeconds,
                 refreshTokenService.issue(user, null, userAgent, ip)
         );
     }
@@ -103,7 +106,7 @@ public class AuthServiceImpl implements AuthService {
         return TokenResponse.withRefresh(
                 accessToken,
                 "Bearer",
-                jwtService.getAccessTokenTtlSeconds(),
+                accessTokenTtlSeconds,
                 rotation.newRawToken()
         );
     }

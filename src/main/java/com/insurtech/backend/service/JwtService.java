@@ -9,8 +9,6 @@ public interface JwtService {
 
     String generateAccessToken(User user);
 
-    long getAccessTokenTtlSeconds();
-
     Claims validateAccessToken(String token);
 
     Set<String> extractRoles(Claims claims);

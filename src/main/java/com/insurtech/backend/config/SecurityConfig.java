@@ -1,5 +1,6 @@
 package com.insurtech.backend.config;
 
+import com.insurtech.backend.security.AuthProperties;
 import com.insurtech.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -22,18 +23,16 @@ public class SecurityConfig {
     private final UserService userService;
     private final JwtDecoder jwtDecoder;
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
+    private final AuthProperties authProperties;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s ->
                         s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "insurtech/v1/auth/login",
-                                "insurtech/v1/auth/register",
-                                "insurtech/v1/auth/refresh").permitAll()
+                        .requestMatchers(authProperties.publicPaths()).permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

@@ -1,6 +1,7 @@
 package com.insurtech.backend.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.insurtech.backend.security.AuthProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,24 +13,23 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 @Configuration
+@RequiredArgsConstructor
 public class RsaKeyConfig {
 
-    @Value("${spring.auth.jwt.private-key-base64}")
-    private String privateKeyBase64;
-
-    @Value("${spring.auth.jwt.public-key-base64}")
-    private String publicKeyBase64;
+    private final AuthProperties authProperties;
 
     @Bean
     public RSAPrivateKey rsaPrivateKey() throws Exception {
-        byte[] bytes = Base64.getMimeDecoder().decode(stripPemHeaders(privateKeyBase64));
+        byte[] bytes = Base64.getMimeDecoder().decode(stripPemHeaders(
+                authProperties.jwt().privateKeyBase64()));
         return (RSAPrivateKey) KeyFactory.getInstance("RSA")
                 .generatePrivate(new PKCS8EncodedKeySpec(bytes));
     }
 
     @Bean
     public RSAPublicKey rsaPublicKey() throws Exception {
-        byte[] bytes = Base64.getMimeDecoder().decode(stripPemHeaders(publicKeyBase64));
+        byte[] bytes = Base64.getMimeDecoder().decode(stripPemHeaders(
+                authProperties.jwt().publicKeyBase64()));
         return (RSAPublicKey) KeyFactory.getInstance("RSA")
                 .generatePublic(new X509EncodedKeySpec(bytes));
     }
