@@ -20,6 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
+/*
+* TODO: Implement revoking all old refreshTokens when I login and get new tokens (refresh and access)
+*
+* */
+
 @RestController
 @RequestMapping(AuthController.URL)
 @RequiredArgsConstructor

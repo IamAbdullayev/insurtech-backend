@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handle(MethodArgumentNotValidException ex, HttpServletRequest req) {
         String msg = ex.getBindingResult().getFieldErrors().stream()
-                .map(er -> er.getField() + ":" + er.getDefaultMessage())
+                .map(er -> er.getField() + ": " + er.getDefaultMessage())
                 .collect(Collectors.joining("; "));
 
         return ResponseEntity.badRequest().body(ErrorResponse.of(
