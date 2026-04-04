@@ -53,7 +53,7 @@ public class AuthController {
     public ResponseEntity<TokenResponse> refresh(@Valid @RequestBody RefreshTokenRequest request,
                                                  HttpServletRequest httpReq) {
         return ResponseEntity.ok(authService.refresh(
-                request.refreshToken(),
+                request,
                 httpReq.getHeader("User-Agent"),
                 httpReq.getRemoteAddr()));
     }

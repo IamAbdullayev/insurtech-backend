@@ -3,6 +3,7 @@ package com.insurtech.backend.service.impl;
 import com.insurtech.backend.domain.enums.UserRole;
 import com.insurtech.backend.domain.enums.UserStatus;
 import com.insurtech.backend.dto.api.request.LoginRequest;
+import com.insurtech.backend.dto.api.request.RefreshTokenRequest;
 import com.insurtech.backend.dto.api.request.RegisterRequest;
 import com.insurtech.backend.domain.entity.User;
 import com.insurtech.backend.dto.api.response.TokenResponse;
@@ -18,7 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,28 +67,24 @@ public class AuthServiceImpl implements AuthService {
 
     @Transactional
     public TokenResponse login(LoginRequest request, String userAgent, String ip) {
-        User user = null;
+        Authentication authentication;
         try {
-            var authentication = authenticationManager.authenticate(
+            authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.email().toLowerCase().strip(),
                             request.password()
                     )
             );
-
-            Object principal = authentication.getPrincipal();
-            if (principal instanceof CustomUserDetails customUserDetails) {
-                user = customUserDetails.user();
-            }
         } catch (AuthenticationException ex) {
             throw new AuthException(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        if (Objects.isNull(user)) {
-            log.info("User is null: {}", user);
-            throw new AuthException(ErrorCode.INVALID_CREDENTIALS);
-        }
+        CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
 
+        if (Objects.isNull(principal)) throw new AuthException(ErrorCode.INVALID_CREDENTIALS);
+
+        User user = userRepository.findById(principal.id())
+                .orElseThrow(() -> new AuthException(ErrorCode.INVALID_CREDENTIALS));
         user.setLastLoginAt(Instant.now());
         userRepository.save(user);
 
@@ -98,8 +97,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Transactional
-    public TokenResponse refresh(String rawRefreshToken, String userAgent, String ip) {
-        RefreshTokenServiceImpl.RotationResult rotation = refreshTokenService.rotate(rawRefreshToken, userAgent, ip);
+    public TokenResponse refresh(RefreshTokenRequest request, String userAgent, String ip) {
+        RefreshTokenServiceImpl.RotationResult rotation = refreshTokenService.rotate(request.refreshToken(), userAgent, ip);
 
         String accessToken = jwtService.generateAccessToken(rotation.user());
 

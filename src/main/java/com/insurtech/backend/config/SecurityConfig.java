@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
 
 @Configuration
 @RequiredArgsConstructor
@@ -31,6 +32,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s ->
                         s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none'")
+                        )
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(authProperties.publicPaths()).permitAll()
                         .anyRequest().authenticated()
@@ -41,11 +47,6 @@ public class SecurityConfig {
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter))
                 );
         return http.build();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return userService::loadSecurityUser;
     }
 
     @Bean

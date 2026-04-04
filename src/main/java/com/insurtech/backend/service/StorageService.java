@@ -1,10 +1,12 @@
 package com.insurtech.backend.service;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.InputStream;
 
 public interface StorageService {
 
-    void upload(String key, InputStream data, String contentType);
+    void upload(Long claimNumber, MultipartFile file);
 
     InputStream download(String key);
 

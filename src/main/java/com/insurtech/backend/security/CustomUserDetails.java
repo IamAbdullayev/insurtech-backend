@@ -1,6 +1,7 @@
 package com.insurtech.backend.security;
 
 import com.insurtech.backend.domain.entity.User;
+import com.insurtech.backend.domain.enums.UserRole;
 import com.insurtech.backend.domain.enums.UserStatus;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -9,33 +10,46 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
-public record CustomUserDetails(User user) implements UserDetails {
-    public CustomUserDetails {
-        Objects.requireNonNull(user);
+public record CustomUserDetails(
+        UUID id,
+        String email,
+        String password,
+        Set<UserRole> roles,
+        UserStatus status
+) implements UserDetails {
+    public static CustomUserDetails from(User user) {
+        return new CustomUserDetails(
+                user.getId(),
+                user.getEmail(),
+                user.getPasswordHash(),
+                user.getRoles(),
+                user.getStatus()
+        );
     }
 
     @Override
     public @NonNull Collection<? extends GrantedAuthority> getAuthorities() {
-        return user.getRoles().stream()
-                .map(r -> new SimpleGrantedAuthority(r.name()))
+        return this.roles.stream()
+                .map(r -> new SimpleGrantedAuthority("ROLE_" + r.name()))
                 .toList();
     }
 
     @Override
     public @Nullable String getPassword() {
-        return user.getPasswordHash();
+        return this.password;
     }
 
     @Override
     public @NonNull String getUsername() {
-        return user.getEmail();
+        return this.email;
     }
 
     @Override
     public boolean isEnabled() {
-        return user.getStatus() == UserStatus.ACTIVE;
+        return this.status == UserStatus.ACTIVE;
     }
 
     // Need to be implemented. (Optional)

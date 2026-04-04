@@ -1,16 +1,23 @@
 package com.insurtech.backend.controller;
 
 import com.insurtech.backend.constants.ApiConstants;
+import com.insurtech.backend.dto.api.request.ClaimRequest;
+import com.insurtech.backend.dto.api.response.ClaimResponse;
+import com.insurtech.backend.security.CustomUserDetails;
 import com.insurtech.backend.service.ClaimService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,13 +37,17 @@ public class ClaimController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<Object>> getAll() {
-        return ResponseEntity.ok(null);
+    public ResponseEntity<List<ClaimResponse>> getAll(@AuthenticationPrincipal CustomUserDetails user) {
+        return ResponseEntity.ok(claimService.getAll(user.id()));
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Object> create() {
-        return ResponseEntity.ok(null);
+    public ResponseEntity<ClaimResponse> create(
+            @Valid @RequestPart("data") ClaimRequest data,
+            @RequestPart("files") List<MultipartFile> files,
+            @AuthenticationPrincipal CustomUserDetails user
+            ) {
+        return ResponseEntity.ok(claimService.create(user.id(), data, files));
     }
 
     @DeleteMapping("/delete")

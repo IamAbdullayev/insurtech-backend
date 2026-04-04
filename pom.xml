@@ -29,15 +29,13 @@
     <properties>
         <java.version>25</java.version>
 
-        <!-- Spring -->
         <!-- AWS -->
         <spring-cloud-aws-dependencies.version>4.0.0</spring-cloud-aws-dependencies.version>
-        <!-- DB & Migration -->
         <!-- JWT -->
         <jjwt.version>0.13.0</jjwt.version>
-        <!-- BCrypt -->
         <!-- Utils -->
-        <!-- Testing -->
+        <jsoup.version>1.22.1</jsoup.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
 
     </properties>
     <dependencyManagement>
@@ -118,6 +116,16 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>${jsoup.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
+        </dependency>
 
         <!-- Testing -->
         <dependency>
@@ -137,6 +145,11 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

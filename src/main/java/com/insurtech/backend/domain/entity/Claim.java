@@ -23,7 +23,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Entity
 @Setter
@@ -41,8 +43,8 @@ public class Claim {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "claim_number", nullable = false, updatable = false)
-    private UUID claimNumber;
+    @Column(name = "claim_number", nullable = false, updatable = false, unique = true)
+    private String claimNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
@@ -79,10 +81,17 @@ public class Claim {
     @PrePersist
     void onCreate() {
         this.createdAt = Instant.now();
+        this.claimNumber = generateRandomClaimNumber();
     }
 
     @PreUpdate
     void onUpdate() {
         this.updatedAt = Instant.now();
+    }
+
+    private String generateRandomClaimNumber() {
+        int year = LocalDate.now().getYear();
+        long random = ThreadLocalRandom.current().nextLong(100_000, 1_000_000);
+        return String.format("CLM-%d-%06d", year, random);
     }
 }

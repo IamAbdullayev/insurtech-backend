@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS claim
 (
     id                   UUID         PRIMARY KEY,
-    claim_number         UUID         NOT NULL,
+    claim_number         VARCHAR(255) UNIQUE NOT NULL,
     user_id              UUID         NOT NULL,
     accident_type        VARCHAR(255) NOT NULL,
     occurred_at          TIMESTAMPTZ  NOT NULL,

@@ -19,9 +19,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadSecurityUser(String email) {
-        User user = userRepository.findByEmail(email)
+    public User getUser(String email) {
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOT_FOUND, "User not found. email: " + email));
-        return new CustomUserDetails(user);
     }
 }

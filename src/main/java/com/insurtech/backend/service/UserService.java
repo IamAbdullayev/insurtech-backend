@@ -1,7 +1,7 @@
 package com.insurtech.backend.service;
 
-import org.springframework.security.core.userdetails.UserDetails;
+import com.insurtech.backend.domain.entity.User;
 
 public interface UserService {
-    UserDetails loadSecurityUser(String email);
+    User getUser(String email);
 }

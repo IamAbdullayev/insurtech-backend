@@ -42,7 +42,7 @@ public class ClaimEstimation {
     private Claim claim;
 
     @Column(name = "ai_confidence")
-    private Double AIConfidence;
+    private Double aiConfidence;
 
     @Column(name = "estimated_cost")
     private BigDecimal estimatedCost;
