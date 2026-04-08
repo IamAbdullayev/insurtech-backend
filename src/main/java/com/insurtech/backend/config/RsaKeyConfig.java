@@ -1,6 +1,5 @@
 package com.insurtech.backend.config;
 
-import com.insurtech.backend.security.AuthProperties;
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;

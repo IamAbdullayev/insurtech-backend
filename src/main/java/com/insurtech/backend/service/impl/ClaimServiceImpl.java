@@ -5,6 +5,7 @@ import com.insurtech.backend.domain.entity.User;
 import com.insurtech.backend.domain.enums.ClaimStatus;
 import com.insurtech.backend.dto.api.request.ClaimRequest;
 import com.insurtech.backend.dto.api.response.ClaimResponse;
+import com.insurtech.backend.event.ClaimCreatedEvent;
 import com.insurtech.backend.exception.ErrorCode;
 import com.insurtech.backend.exception.NotFoundException;
 import com.insurtech.backend.mapper.ClaimMapper;
@@ -16,6 +17,7 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,6 +29,7 @@ public class ClaimServiceImpl implements ClaimService {
   private final ClaimMapper claimMapper;
   private final UserRepository userRepository;
   private final ClaimFileService claimFileService;
+  private final ApplicationEventPublisher publisher;
 
   public List<ClaimResponse> getAll(UUID userId) {
     return claimMapper.toResponseList(claimRepository.findAllByUserId(userId).orElse(List.of()));
@@ -42,6 +45,16 @@ public class ClaimServiceImpl implements ClaimService {
                         ErrorCode.NOT_FOUND, "Claim not found. claimNumber" + claimNumber)));
   }
 
+  public ClaimResponse getById(UUID claimId) {
+    return claimMapper.toResponse(
+        claimRepository
+            .findById((claimId))
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        ErrorCode.NOT_FOUND, "Claim not found. claimId" + claimId)));
+  }
+
   @Transactional
   public ClaimResponse create(UUID userId, ClaimRequest data, List<MultipartFile> files) {
     User user =
@@ -54,9 +67,12 @@ public class ClaimServiceImpl implements ClaimService {
     Claim claim = claimMapper.toEntity(data);
     claim.setUser(user);
     claim.setStatus(ClaimStatus.SUBMITTED);
-    claimRepository.save(claim);
 
-    claimFileService.create(claim, files);
+    Claim savedClaim = claimRepository.save(claim);
+
+    claimFileService.upload(claim, files);
+
+    publisher.publishEvent(new ClaimCreatedEvent(savedClaim.getId()));
 
     return claimMapper.toResponse(claim);
   }

@@ -12,6 +12,8 @@ public interface ClaimService {
 
   ClaimResponse getByClaimNumber(String claimNumber);
 
+  ClaimResponse getById(UUID claimId);
+
   ClaimResponse create(UUID userId, ClaimRequest data, List<MultipartFile> files);
 
   void delete(String claimNumber);

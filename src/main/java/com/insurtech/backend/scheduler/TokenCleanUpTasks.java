@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TokenCleanUpTasks {
   private final RefreshTokenRepository refreshTokenRepository;
 
-  @Scheduled(cron = "${spring.scheduler.auth.refresh-token-clean-up}")
+  @Scheduled(cron = "${auth.task.refresh-token-clean-up}")
   @Transactional
   public void RefreshTokenCleanUp() {
     int deleted =

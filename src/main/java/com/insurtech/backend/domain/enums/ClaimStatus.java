@@ -1,8 +1,8 @@
 package com.insurtech.backend.domain.enums;
 
 public enum ClaimStatus {
-  PENDING,
   SUBMITTED,
+  PENDING,
   UNDER_REVIEW,
   APPROVED,
   REPAIRED,

@@ -1,9 +1,9 @@
 package com.insurtech.backend.service.impl;
 
+import com.insurtech.backend.config.AuthProperties;
 import com.insurtech.backend.domain.entity.User;
 import com.insurtech.backend.exception.AuthException;
 import com.insurtech.backend.exception.ErrorCode;
-import com.insurtech.backend.security.AuthProperties;
 import com.insurtech.backend.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;

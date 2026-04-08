@@ -26,11 +26,14 @@ spring:
         access-key: ${AWS_ACCESS_KEY_ID}
         secret-key: ${AWS_SECRET_ACCESS_KEY}
 
-  scheduler:
-    auth:
-      refresh-token-clean-up: "0 0 2 1/15 * *"
+async:
+  core-pool-size: 5
+  max-pool-size: 10
+  queue-capacity: 50
 
 auth:
+  task:
+    refresh-token-clean-up: "0 0 2 1/15 * *"
   jwt:
     issuer: ${JWT_ISSUER:https://insurtech.com}
     audience: ${JWT_AUDIENCE:api}

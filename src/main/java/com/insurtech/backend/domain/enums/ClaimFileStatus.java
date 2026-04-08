@@ -1,7 +1,7 @@
 package com.insurtech.backend.domain.enums;
 
 public enum ClaimFileStatus {
-  PROCESSING,
+  UPLOADING,
   UPLOADED,
   FAILED
 }

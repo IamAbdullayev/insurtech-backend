@@ -1,6 +1,5 @@
 package com.insurtech.backend.config;
 
-import com.insurtech.backend.security.AuthProperties;
 import com.insurtech.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
