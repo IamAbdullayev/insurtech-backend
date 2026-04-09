@@ -13,12 +13,12 @@ import com.insurtech.backend.repository.ClaimRepository;
 import com.insurtech.backend.repository.UserRepository;
 import com.insurtech.backend.service.ClaimFileService;
 import com.insurtech.backend.service.ClaimService;
-import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service

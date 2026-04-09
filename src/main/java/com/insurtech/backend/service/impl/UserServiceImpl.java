@@ -21,6 +21,8 @@ public class UserServiceImpl implements UserService {
     return userRepository
         .findByEmail(email)
         .orElseThrow(
-            () -> new NotFoundException(ErrorCode.NOT_FOUND, "User not found. email: " + email));
+            () ->
+                new NotFoundException(
+                    ErrorCode.NOT_FOUND, "User not found. email: " + email)); // Need to be masked!
   }
 }

@@ -95,7 +95,7 @@ public class AuthServiceImpl implements AuthService {
         refreshTokenService.issue(user, null, userAgent, ip));
   }
 
-  @Transactional
+  @Transactional(noRollbackFor = AuthException.class)
   public TokenResponse refresh(RefreshTokenRequest request, String userAgent, String ip) {
     RefreshTokenServiceImpl.RotationResult rotation =
         refreshTokenService.rotate(request.refreshToken(), userAgent, ip);

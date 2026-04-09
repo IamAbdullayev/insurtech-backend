@@ -10,7 +10,6 @@ import com.insurtech.backend.exception.InvalidValueException;
 import com.insurtech.backend.repository.ClaimFileRepository;
 import com.insurtech.backend.service.ClaimFileService;
 import com.insurtech.backend.service.StorageService;
-import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -18,6 +17,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
@@ -60,8 +60,8 @@ public class ClaimFileServiceImpl implements ClaimFileService {
               .status(ClaimFileStatus.UPLOADED)
               .build();
 
-      log.info("Claim file have been saved to the DB. claimFileId: {}", claimFile.getId());
-      claimFileRepository.save(claimFile);
+      ClaimFile savedClaimFile = claimFileRepository.save(claimFile);
+      log.info("Claim file have been saved to the DB. claimFileId: {}", savedClaimFile.getId());
     }
   }
 

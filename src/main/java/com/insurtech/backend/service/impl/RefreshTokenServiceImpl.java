@@ -70,7 +70,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
    * replay after family kill). 3. If USED → reuse detected → revoke the entire family → reject. 4.
    * If ACTIVE and not expired → mark as USED → issue new token in same family.
    */
-  @Transactional
+  @Transactional(noRollbackFor = AuthException.class)
   public RotationResult rotate(String rawToken, String userAgent, String ip) {
     RefreshToken current =
         refreshTokenRepository

@@ -31,8 +31,6 @@
 
         <!-- AWS -->
         <spring-cloud-aws-dependencies.version>4.0.0</spring-cloud-aws-dependencies.version>
-        <!-- JWT -->
-        <jjwt.version>0.13.0</jjwt.version>
         <!-- Utils -->
         <jsoup.version>1.22.1</jsoup.version>
         <mapstruct.version>1.6.3</mapstruct.version>
@@ -91,25 +89,6 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-        </dependency>
-
-        <!-- JWT -->
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-            <version>${jjwt.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-            <version>${jjwt.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-jackson</artifactId>
-            <version>${jjwt.version}</version>
-            <scope>runtime</scope>
         </dependency>
 
         <!-- Utils -->
