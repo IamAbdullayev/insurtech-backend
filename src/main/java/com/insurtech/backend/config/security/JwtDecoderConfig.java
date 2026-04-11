@@ -1,4 +1,4 @@
-package com.insurtech.backend.config;
+package com.insurtech.backend.config.security;
 
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;

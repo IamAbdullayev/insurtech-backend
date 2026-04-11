@@ -155,7 +155,7 @@ public class ClaimController {
           List<MultipartFile> files,
       @AuthenticationPrincipal Jwt jwt) {
     return ResponseEntity.status(HttpStatus.CREATED)
-            .body(claimService.create(UUID.fromString(jwt.getSubject()), data, files));
+        .body(claimService.create(UUID.fromString(jwt.getSubject()), data, files));
   }
 
   @Operation(

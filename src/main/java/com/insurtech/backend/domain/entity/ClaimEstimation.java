@@ -1,7 +1,6 @@
 package com.insurtech.backend.domain.entity;
 
 import com.insurtech.backend.domain.enums.ClaimEstimationStatus;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

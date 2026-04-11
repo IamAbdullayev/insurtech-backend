@@ -6,7 +6,7 @@ import com.insurtech.backend.domain.enums.ClaimStatus;
 import com.insurtech.backend.dto.api.request.ClaimRequest;
 import com.insurtech.backend.dto.api.response.ClaimResponse;
 import com.insurtech.backend.event.ClaimCreatedEvent;
-import com.insurtech.backend.exception.ErrorCode;
+import com.insurtech.backend.exception.handler.ErrorCode;
 import com.insurtech.backend.exception.NotFoundException;
 import com.insurtech.backend.mapper.ClaimMapper;
 import com.insurtech.backend.repository.ClaimRepository;

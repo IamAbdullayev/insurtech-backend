@@ -1,6 +1,6 @@
 package com.insurtech.backend.service.impl;
 
-import com.insurtech.backend.config.AuthProperties;
+import com.insurtech.backend.config.security.AuthProperties;
 import com.insurtech.backend.domain.entity.User;
 import com.insurtech.backend.service.JwtService;
 import java.time.Instant;

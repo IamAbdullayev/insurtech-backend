@@ -31,9 +31,14 @@ async:
   max-pool-size: 10
   queue-capacity: 50
 
+ai:
+  base-url: ${AI_SERVICE_URL}
+  connect-timeout-seconds: 10
+  read-timeout-minutes: 15
+
 auth:
   task:
-    refresh-token-clean-up: "0 0 2 1/7 * *"
+    refresh-token-clean-up: "0 1/5 * * * *"
   jwt:
     issuer: ${JWT_ISSUER}
     audience: ${JWT_AUDIENCE}

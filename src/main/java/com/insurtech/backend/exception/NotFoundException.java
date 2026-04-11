@@ -1,5 +1,6 @@
 package com.insurtech.backend.exception;
 
+import com.insurtech.backend.exception.handler.ErrorCode;
 import lombok.Getter;
 
 @Getter

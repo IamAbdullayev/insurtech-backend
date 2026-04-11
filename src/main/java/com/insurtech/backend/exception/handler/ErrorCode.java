@@ -1,4 +1,4 @@
-package com.insurtech.backend.exception;
+package com.insurtech.backend.exception.handler;
 
 import lombok.Getter;
 
@@ -15,6 +15,7 @@ public enum ErrorCode {
   VALIDATION_ERROR("Validation error"),
   NOT_FOUND("Not found"),
   INVALID_VALUE("Provided value is invalid"),
+  AI_SERVICE_ERROR("AI analysis service error"),
   INTERNAL_ERROR("Internal server error");
 
   private final String description;

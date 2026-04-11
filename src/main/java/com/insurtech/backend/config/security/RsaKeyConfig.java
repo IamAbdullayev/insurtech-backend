@@ -1,4 +1,4 @@
-package com.insurtech.backend.config;
+package com.insurtech.backend.config.security;
 
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPrivateKey;
@@ -6,6 +6,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

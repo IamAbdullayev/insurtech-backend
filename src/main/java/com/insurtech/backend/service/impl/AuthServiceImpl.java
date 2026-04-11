@@ -8,7 +8,7 @@ import com.insurtech.backend.dto.api.request.RefreshTokenRequest;
 import com.insurtech.backend.dto.api.request.RegisterRequest;
 import com.insurtech.backend.dto.api.response.TokenResponse;
 import com.insurtech.backend.exception.AuthException;
-import com.insurtech.backend.exception.ErrorCode;
+import com.insurtech.backend.exception.handler.ErrorCode;
 import com.insurtech.backend.repository.UserRepository;
 import com.insurtech.backend.security.CustomUserDetails;
 import com.insurtech.backend.service.AuthService;

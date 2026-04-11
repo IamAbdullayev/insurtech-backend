@@ -1,4 +1,4 @@
-package com.insurtech.backend.config;
+package com.insurtech.backend.config.security;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

@@ -5,7 +5,7 @@ import com.insurtech.backend.domain.entity.ClaimFile;
 import com.insurtech.backend.domain.enums.ClaimFileStatus;
 import com.insurtech.backend.domain.enums.ClaimFileType;
 import com.insurtech.backend.dto.api.response.ClaimFileResponse;
-import com.insurtech.backend.exception.ErrorCode;
+import com.insurtech.backend.exception.handler.ErrorCode;
 import com.insurtech.backend.exception.InvalidValueException;
 import com.insurtech.backend.repository.ClaimFileRepository;
 import com.insurtech.backend.service.ClaimFileService;
@@ -70,8 +70,11 @@ public class ClaimFileServiceImpl implements ClaimFileService {
     List<ClaimFile> claimFiles = claimFileRepository.findAllByClaim(claim);
 
     claimFileRepository.deleteAll(claimFiles);
-    log.info("Claim files data have been deleted from the DB. claimNumber: {}", claim.getClaimNumber());
+    log.info(
+        "Claim files data have been deleted from the DB. claimNumber: {}", claim.getClaimNumber());
     claimFiles.forEach(file -> storageService.delete(file.getFileKey()));
-    log.info("Claim files have been deleted from storage service (S3). claimNumber: {}", claim.getClaimNumber());
+    log.info(
+        "Claim files have been deleted from storage service (S3). claimNumber: {}",
+        claim.getClaimNumber());
   }
 }

@@ -5,7 +5,7 @@ import com.insurtech.backend.domain.entity.RefreshToken;
 import com.insurtech.backend.domain.entity.User;
 import com.insurtech.backend.domain.enums.RefreshTokenStatus;
 import com.insurtech.backend.exception.AuthException;
-import com.insurtech.backend.exception.ErrorCode;
+import com.insurtech.backend.exception.handler.ErrorCode;
 import com.insurtech.backend.repository.RefreshTokenRepository;
 import com.insurtech.backend.service.RefreshTokenService;
 import java.time.Instant;

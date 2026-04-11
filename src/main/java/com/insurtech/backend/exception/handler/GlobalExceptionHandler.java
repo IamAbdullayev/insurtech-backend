@@ -1,8 +1,8 @@
 package com.insurtech.backend.exception.handler;
 
+import com.insurtech.backend.exception.AIServiceException;
 import com.insurtech.backend.exception.AuthException;
-import com.insurtech.backend.exception.ErrorCode;
-import com.insurtech.backend.exception.ErrorResponse;
+import com.insurtech.backend.exception.InvalidValueException;
 import com.insurtech.backend.exception.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.stream.Collectors;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
   @ExceptionHandler(AuthException.class)
-  public ResponseEntity<ErrorResponse> handle(AuthException ex, HttpServletRequest req) {
+  public ResponseEntity<ErrorBody> handle(AuthException ex, HttpServletRequest req) {
     ErrorCode errorCode = ex.getErrorCode();
     String message = ex.getMessage() != null ? ex.getMessage() : errorCode.getDescription();
 
@@ -40,11 +40,11 @@ public class GlobalExceptionHandler {
     }
 
     return ResponseEntity.status(status)
-        .body(ErrorResponse.of(status.value(), errorCode.name(), message, req.getRequestURI()));
+        .body(ErrorBody.of(status.value(), errorCode.name(), message, req.getRequestURI()));
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<ErrorResponse> handle(
+  public ResponseEntity<ErrorBody> handle(
       MethodArgumentNotValidException ex, HttpServletRequest req) {
     String msg =
         ex.getBindingResult().getFieldErrors().stream()
@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
 
     return ResponseEntity.badRequest()
         .body(
-            ErrorResponse.of(
+            ErrorBody.of(
                 HttpStatus.BAD_REQUEST.value(),
                 ErrorCode.VALIDATION_ERROR.name(),
                 msg,
@@ -61,22 +61,45 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(NotFoundException.class)
-  public ResponseEntity<ErrorResponse> handle(NotFoundException ex, HttpServletRequest req) {
+  public ResponseEntity<ErrorBody> handle(NotFoundException ex, HttpServletRequest req) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND)
         .body(
-            ErrorResponse.of(
+            ErrorBody.of(
                 HttpStatus.NOT_FOUND.value(),
                 ex.getErrorCode().name(),
                 ex.getMessage() != null ? ex.getMessage() : ex.getErrorCode().getDescription(),
                 req.getRequestURI()));
   }
 
+  @ExceptionHandler(InvalidValueException.class)
+  public ResponseEntity<ErrorBody> handle(InvalidValueException ex, HttpServletRequest req) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(
+            ErrorBody.of(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getErrorCode().name(),
+                ex.getMessage() != null ? ex.getMessage() : ex.getErrorCode().getDescription(),
+                req.getRequestURI()));
+  }
+
+  @ExceptionHandler(AIServiceException.class)
+  public ResponseEntity<ErrorBody> handle(AIServiceException ex, HttpServletRequest req) {
+    log.error("AI service error. errorCode: {} | message: {}", ex.getErrorCode(), ex.getMessage());
+    return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+        .body(
+            ErrorBody.of(
+                HttpStatus.BAD_GATEWAY.value(),
+                ex.getErrorCode().name(),
+                ex.getMessage() != null ? ex.getMessage() : ex.getErrorCode().getDescription(),
+                req.getRequestURI()));
+  }
+
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResponse> handle(Exception ex, HttpServletRequest req) {
+  public ResponseEntity<ErrorBody> handle(Exception ex, HttpServletRequest req) {
     log.error("Unhandled exception", ex);
     return ResponseEntity.internalServerError()
         .body(
-            ErrorResponse.of(
+            ErrorBody.of(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 ErrorCode.INTERNAL_ERROR.name(),
                 ErrorCode.INTERNAL_ERROR.getDescription(),
