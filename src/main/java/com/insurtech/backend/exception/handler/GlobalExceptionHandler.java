@@ -4,6 +4,8 @@ import com.insurtech.backend.exception.AIServiceException;
 import com.insurtech.backend.exception.AuthException;
 import com.insurtech.backend.exception.InvalidValueException;
 import com.insurtech.backend.exception.NotFoundException;
+import com.insurtech.backend.exception.PartialDeletionException;
+import com.insurtech.backend.exception.StorageServiceException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import static com.insurtech.backend.exception.handler.ErrorCode.STORAGE_SERVICE_ERROR;
 
 @Slf4j
 @RestControllerAdvice
@@ -82,9 +86,30 @@ public class GlobalExceptionHandler {
                 req.getRequestURI()));
   }
 
+  @ExceptionHandler(StorageServiceException.class)
+  public ResponseEntity<ErrorBody> handle(StorageServiceException ex, HttpServletRequest req) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(
+            ErrorBody.of(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getErrorCode().name(),
+                ex.getMessage() != null ? ex.getMessage() : ex.getErrorCode().getDescription(),
+                req.getRequestURI()));
+  }
+
+  @ExceptionHandler(PartialDeletionException.class)
+  public ResponseEntity<ErrorBody> handle(PartialDeletionException ex, HttpServletRequest req) {
+    return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(
+                    ErrorBody.of(
+                            HttpStatus.CONFLICT.value(),
+                            STORAGE_SERVICE_ERROR.name(),
+                            "Partial deletion error. Scheduler should clean them.",
+                            req.getRequestURI()));
+  }
+
   @ExceptionHandler(AIServiceException.class)
   public ResponseEntity<ErrorBody> handle(AIServiceException ex, HttpServletRequest req) {
-    log.error("AI service error. errorCode: {} | message: {}", ex.getErrorCode(), ex.getMessage());
     return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
         .body(
             ErrorBody.of(
@@ -96,7 +121,6 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorBody> handle(Exception ex, HttpServletRequest req) {
-    log.error("Unhandled exception", ex);
     return ResponseEntity.internalServerError()
         .body(
             ErrorBody.of(

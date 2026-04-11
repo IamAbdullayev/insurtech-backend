@@ -1,8 +1,8 @@
 package com.insurtech.backend.service.impl;
 
 import com.insurtech.backend.domain.entity.User;
-import com.insurtech.backend.exception.handler.ErrorCode;
 import com.insurtech.backend.exception.NotFoundException;
+import com.insurtech.backend.exception.handler.ErrorCode;
 import com.insurtech.backend.repository.UserRepository;
 import com.insurtech.backend.service.UserService;
 import lombok.RequiredArgsConstructor;

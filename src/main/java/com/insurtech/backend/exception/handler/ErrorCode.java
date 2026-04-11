@@ -15,6 +15,7 @@ public enum ErrorCode {
   VALIDATION_ERROR("Validation error"),
   NOT_FOUND("Not found"),
   INVALID_VALUE("Provided value is invalid"),
+  STORAGE_SERVICE_ERROR("Storage service error"),
   AI_SERVICE_ERROR("AI analysis service error"),
   INTERNAL_ERROR("Internal server error");
 

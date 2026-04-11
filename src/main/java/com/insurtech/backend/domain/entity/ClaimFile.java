@@ -2,7 +2,6 @@ package com.insurtech.backend.domain.entity;
 
 import com.insurtech.backend.domain.enums.ClaimFileStatus;
 import com.insurtech.backend.domain.enums.ClaimFileType;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -39,7 +38,7 @@ public class ClaimFile {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "claim_id", nullable = false, updatable = false)
   private Claim claim;
 
@@ -69,8 +68,14 @@ public class ClaimFile {
   @Column(name = "uploaded_at")
   private Instant uploadedAt;
 
+  @Column(name = "uploading_at")
+  private Instant uploadingAt;
+
   @Column(name = "updated_at")
   private Instant updatedAt;
+
+  @Column(name = "deleted_at")
+  private Instant deletedAt;
 
   @PrePersist
   void onCreate() {

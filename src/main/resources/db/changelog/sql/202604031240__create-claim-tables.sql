@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS claim_file
     status             VARCHAR(20)  NOT NULL,
     created_at         TIMESTAMPTZ  NOT NULL,
     uploaded_at        TIMESTAMPTZ,
+    uploading_at       TIMESTAMPTZ,
+    deleted_at         TIMESTAMPTZ,
     updated_at         TIMESTAMPTZ,
 
     CONSTRAINT fk_claim_file_claim_id FOREIGN KEY (claim_id) REFERENCES claim (id) ON DELETE CASCADE

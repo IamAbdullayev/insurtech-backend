@@ -6,9 +6,10 @@ import com.insurtech.backend.domain.enums.ClaimStatus;
 import com.insurtech.backend.dto.api.request.ClaimRequest;
 import com.insurtech.backend.dto.api.response.ClaimResponse;
 import com.insurtech.backend.event.ClaimCreatedEvent;
-import com.insurtech.backend.exception.handler.ErrorCode;
 import com.insurtech.backend.exception.NotFoundException;
+import com.insurtech.backend.exception.handler.ErrorCode;
 import com.insurtech.backend.mapper.ClaimMapper;
+import com.insurtech.backend.processor.ClaimFileProcessor;
 import com.insurtech.backend.repository.ClaimRepository;
 import com.insurtech.backend.repository.UserRepository;
 import com.insurtech.backend.service.ClaimFileService;
@@ -29,6 +30,7 @@ public class ClaimServiceImpl implements ClaimService {
   private final ClaimMapper claimMapper;
   private final UserRepository userRepository;
   private final ClaimFileService claimFileService;
+  private final ClaimFileProcessor claimFileProcessor;
   private final ApplicationEventPublisher publisher;
 
   public List<ClaimResponse> getAll(UUID userId) {
@@ -70,7 +72,7 @@ public class ClaimServiceImpl implements ClaimService {
 
     Claim savedClaim = claimRepository.save(claim);
 
-    claimFileService.upload(claim, files);
+    claimFileProcessor.upload(claim, files);
 
     publisher.publishEvent(new ClaimCreatedEvent(savedClaim.getId()));
 
@@ -86,7 +88,7 @@ public class ClaimServiceImpl implements ClaimService {
                 () ->
                     new NotFoundException(
                         ErrorCode.NOT_FOUND, "Claim not found. claimNumber" + claimNumber));
-    claimFileService.delete(claim);
+    claimFileProcessor.delete(claim);
     claimRepository.delete(claim);
   }
 }

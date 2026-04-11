@@ -1,9 +1,7 @@
 package com.insurtech.backend.service.impl;
 
-import com.insurtech.backend.exception.S3DeleteException;
-import com.insurtech.backend.exception.S3DownloadException;
-import com.insurtech.backend.exception.S3PresignedUrlException;
-import com.insurtech.backend.exception.S3UploadException;
+import com.insurtech.backend.exception.StorageServiceException;
+import com.insurtech.backend.exception.handler.ErrorCode;
 import com.insurtech.backend.service.StorageService;
 import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3Exception;
@@ -38,11 +36,11 @@ public class S3StorageServiceImpl implements StorageService {
     try {
       s3Template.upload(bucketName, s3Key, file.getInputStream(), metadata);
     } catch (IOException e) {
-      throw new S3UploadException(
-          "Failed to read file. fileName: " + file.getOriginalFilename(), e);
-    } catch (Exception e) {
-      throw new S3UploadException(
-          "Failed to upload file. fileName: " + file.getOriginalFilename(), e);
+      throw new StorageServiceException(
+          ErrorCode.STORAGE_SERVICE_ERROR, "Something went wrong when reading file");
+    } catch (S3Exception e) {
+      throw new StorageServiceException(
+          ErrorCode.STORAGE_SERVICE_ERROR, "Something went wrong when uploading file");
     }
 
     return s3Key;
@@ -53,9 +51,11 @@ public class S3StorageServiceImpl implements StorageService {
       log.info("Downloading file from S3. fileKey: {}", fileKey);
       return s3Template.download(bucketName, fileKey).getInputStream();
     } catch (IOException e) {
-      throw new S3DownloadException("Failed to read file. fileKey: " + fileKey, e);
+      throw new StorageServiceException(
+          ErrorCode.STORAGE_SERVICE_ERROR, "Something went wrong when reading file");
     } catch (S3Exception e) {
-      throw new S3DownloadException("Failed to download file. fileKey: " + fileKey, e);
+      throw new StorageServiceException(
+          ErrorCode.STORAGE_SERVICE_ERROR, "Something went wrong when downloading file");
     }
   }
 
@@ -64,7 +64,8 @@ public class S3StorageServiceImpl implements StorageService {
       s3Template.deleteObject(bucketName, fileKey);
       log.info("File deleted from storage service (S3) successfully. fileKey: {}", fileKey);
     } catch (S3Exception e) {
-      throw new S3DeleteException("Failed to delete file. key: " + fileKey, e);
+      throw new StorageServiceException(
+          ErrorCode.STORAGE_SERVICE_ERROR, "Something went wrong when deleting file");
     }
   }
 
@@ -72,7 +73,8 @@ public class S3StorageServiceImpl implements StorageService {
     try {
       return s3Template.createSignedGetURL(bucketName, fileKey, Duration.ofMinutes(45)).toString();
     } catch (S3Exception e) {
-      throw new S3PresignedUrlException("Failed to generate presignedUrl. fileKey: " + fileKey, e);
+      throw new StorageServiceException(
+          ErrorCode.STORAGE_SERVICE_ERROR, "Something went wrong when getting presign url");
     }
   }
 
