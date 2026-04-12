@@ -1,76 +1,113 @@
 package com.insurtech.backend.service.impl;
 
+import com.insurtech.backend.client.AIAnalysisClient;
 import com.insurtech.backend.domain.entity.Claim;
 import com.insurtech.backend.domain.entity.ClaimEstimation;
 import com.insurtech.backend.domain.enums.ClaimEstimationStatus;
+import com.insurtech.backend.domain.enums.ClaimFileStatus;
+import com.insurtech.backend.domain.enums.ClaimFileType;
 import com.insurtech.backend.domain.enums.ClaimStatus;
+import com.insurtech.backend.dto.ai.request.AIAnalysisRequest;
+import com.insurtech.backend.dto.ai.response.AIAnalysisResponse;
 import com.insurtech.backend.dto.api.response.ClaimFileResponse;
-import com.insurtech.backend.repository.ClaimEstimationRepository;
+import com.insurtech.backend.exception.AIServiceException;
+import com.insurtech.backend.exception.handler.ErrorCode;
 import com.insurtech.backend.repository.ClaimRepository;
 import com.insurtech.backend.service.ClaimEstimationService;
 import com.insurtech.backend.service.ClaimFileService;
-import java.math.BigDecimal;
+import com.insurtech.backend.service.StorageService;
+import com.insurtech.backend.service.tx.ClaimEstimationTxService;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-/* ApplicationEvent - when claim is created, publish the event
- * @Async + @TransactionalEventListener - listening events, if event came, will trigger the estimation method
- * scheduled retry - for any cases, will check db and find the claims with the status PENDING, call estimation method again
- */
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientResponseException;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClaimEstimationServiceImpl implements ClaimEstimationService {
 
-  private final ClaimEstimationRepository claimEstimationRepository;
+  private final ClaimEstimationTxService txService;
   private final ClaimRepository claimRepository;
   private final ClaimFileService claimFileService;
+  private final StorageService storageService;
+  private final AIAnalysisClient aIAnalysisClient;
+
+  @Value("${spring.cloud.aws.s3.presigned-url.ttl-minutes:15}")
+  private int presignedUrlTtlMinutes;
 
   @Override
-  @Transactional
   public void estimate(UUID claimId) {
     Claim claim = claimRepository.findById(claimId).orElse(null);
 
-    if (Objects.isNull(claim)) {
-      log.warn("ESTIMATION_SKIPPED! Error occurred when getting claim");
+    if (claim == null) {
+      log.warn("ESTIMATION_SKIPPED | claim not found | {}", claimId);
       return;
     }
 
     if (claim.getStatus() != ClaimStatus.SUBMITTED) {
-      log.warn("ESTIMATION_SKIPPED! Claim estimation already done or in processing");
+      log.warn("ESTIMATION_SKIPPED | invalid status | {} | {}", claimId, claim.getStatus());
       return;
     }
 
-    List<ClaimFileResponse> claimFileResponses = claimFileService.getByClaimId(claimId);
+    ClaimEstimation job = txService.getOrCreate(claim);
+    boolean shouldCallAI;
 
-    log.warn("!!!!!!!!!!!! ESTIMATION PROCESS STARTED !!!!!!!!!!!!");
-    claimFileResponses.forEach(
-        file ->
-            log.info(
-                "FILE_KEY: {} \n| FILE_TYPE: {} \n| FILE_NAME: {} \n| SIZE: {} \n| CONTENT_TYPE: {} \n| STATUS: {} \n| UPLOADED_AT: {}",
-                file.fileKey(),
-                file.type(),
-                file.originalFilename(),
-                file.size(),
-                file.contentType(),
-                file.status(),
-                file.uploadedAt()));
-    log.warn("!!!!!!!!!!!! ESTIMATION PROCESS FINISHED !!!!!!!!!!!!");
+    try {
+      shouldCallAI = txService.markProcessing(job.getId());
+      log.info("ESTIMATION_PROCESSING | estimationStatus: {} | shouldCallAI: {}", job.getStatus(), shouldCallAI);
+    } catch (Exception ex) {
+      log.error("ESTIMATION_FAILED | claimId: {}", claimId, ex);
+      txService.saveFailure(job.getId(), ex.getMessage());
+      throw ex;
+    }
 
-    ClaimEstimation.ClaimEstimationBuilder response =
-        ClaimEstimation.builder()
-            .claim(claim)
-            .estimatedCost(BigDecimal.valueOf(1005))
-            .aiConfidence(89D)
-            .rawResponse("")
-            .status(ClaimEstimationStatus.ESTIMATED);
+    if (shouldCallAI) callAI(job.getId(), claimId);
+  }
 
-    claimEstimationRepository.save(response.build());
+  private void callAI(UUID estimationId, UUID claimId) {
+    List<String> imageUrls = resolveImageUrls(claimId);
+
+    if (imageUrls.isEmpty()) {
+      txService.saveFailure(estimationId, "No images found");
+      return;
+    }
+
+    try {
+      log.info("AI_CALL_STARTED | claimId: {}", claimId);
+      AIAnalysisResponse response = aIAnalysisClient.analyze(new AIAnalysisRequest(imageUrls));
+
+      if (!Objects.isNull(response)) {
+        txService.saveSuccess(estimationId, response);
+      } else {
+        txService.saveFailure(estimationId, "AIAnalysisResponse is null");
+      }
+    } catch (RestClientResponseException ex) {
+      txService.saveFailure(
+          estimationId, "HTTP " + ex.getStatusCode() + " | " + ex.getResponseBodyAsString());
+      throw new AIServiceException(ErrorCode.AI_SERVICE_ERROR, "AI service error", ex);
+    } catch (ResourceAccessException ex) {
+      txService.saveFailure(estimationId, "Timeout / unreachable");
+      throw new AIServiceException(ErrorCode.AI_SERVICE_ERROR, "AI service unavailable", ex);
+    } catch (Exception ex) {
+      txService.saveFailure(estimationId, ex.getMessage());
+      throw new AIServiceException(ErrorCode.AI_SERVICE_ERROR, ex.getMessage(), ex);
+    }
+  }
+
+  private List<String> resolveImageUrls(UUID claimId) {
+    log.debug(
+        "Resolving presigned URLs | claimId: {} | ttlMinutes: {}", claimId, presignedUrlTtlMinutes);
+
+    return claimFileService.getByClaimId(claimId).stream()
+        .filter(f -> f.type() == ClaimFileType.PHOTO && f.status() == ClaimFileStatus.UPLOADED)
+        .map(ClaimFileResponse::fileKey)
+        .map(storageService::getPresignedUrl)
+        .toList();
   }
 }

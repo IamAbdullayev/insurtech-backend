@@ -13,6 +13,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -54,11 +55,23 @@ public class ClaimEstimation {
   @Column(name = "status", nullable = false)
   private ClaimEstimationStatus status;
 
+  @Column(name = "attempt_count")
+  private int attemptCount;
+
+  @Column(name = "updated_at")
+  private Instant updatedAt;
+
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
 
   @PrePersist
   void onCreate() {
     this.createdAt = Instant.now();
+    this.updatedAt = Instant.now();
+  }
+
+  @PreUpdate
+  void onUpdate() {
+    this.updatedAt = Instant.now();
   }
 }

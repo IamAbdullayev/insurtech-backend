@@ -20,6 +20,8 @@ spring:
     aws:
       s3:
         bucket: dev-insurtech-claim-file-bucket
+        presigned-url:
+          ttl-minutes: 30
       region:
         static: eu-central-1
       credentials: # Specify only for local running to get access to AWS
@@ -33,12 +35,17 @@ async:
 
 ai:
   base-url: ${AI_SERVICE_URL}
+  analyze-uri: ${AI_ANALYZE_URI}
   connect-timeout-seconds: 10
   read-timeout-minutes: 15
+  jobs:
+    max-attempt: 3
+    claim-estimation-retry: "0 1/5 * * * *"
+    stuck-estimation-recover: "0 1/15 * * * *"
 
 auth:
   task:
-    refresh-token-clean-up: "0 1/5 * * * *"
+    refresh-token-clean-up: "0 1/30 * * * *"
   jwt:
     issuer: ${JWT_ISSUER}
     audience: ${JWT_AUDIENCE}

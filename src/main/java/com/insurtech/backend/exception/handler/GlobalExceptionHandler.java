@@ -1,5 +1,7 @@
 package com.insurtech.backend.exception.handler;
 
+import static com.insurtech.backend.exception.handler.ErrorCode.STORAGE_SERVICE_ERROR;
+
 import com.insurtech.backend.exception.AIServiceException;
 import com.insurtech.backend.exception.AuthException;
 import com.insurtech.backend.exception.InvalidValueException;
@@ -14,8 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import static com.insurtech.backend.exception.handler.ErrorCode.STORAGE_SERVICE_ERROR;
 
 @Slf4j
 @RestControllerAdvice
@@ -100,12 +100,12 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(PartialDeletionException.class)
   public ResponseEntity<ErrorBody> handle(PartialDeletionException ex, HttpServletRequest req) {
     return ResponseEntity.status(HttpStatus.CONFLICT)
-            .body(
-                    ErrorBody.of(
-                            HttpStatus.CONFLICT.value(),
-                            STORAGE_SERVICE_ERROR.name(),
-                            "Partial deletion error. Scheduler should clean them.",
-                            req.getRequestURI()));
+        .body(
+            ErrorBody.of(
+                HttpStatus.CONFLICT.value(),
+                STORAGE_SERVICE_ERROR.name(),
+                "Partial deletion error. Scheduler should clean them.",
+                req.getRequestURI()));
   }
 
   @ExceptionHandler(AIServiceException.class)

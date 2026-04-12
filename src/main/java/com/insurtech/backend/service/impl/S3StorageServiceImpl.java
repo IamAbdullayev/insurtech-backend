@@ -26,6 +26,9 @@ public class S3StorageServiceImpl implements StorageService {
   @Value("${spring.cloud.aws.s3.bucket}")
   private String bucketName;
 
+  @Value("${spring.cloud.aws.s3.presigned-url.ttl-minutes:30}")
+  private int presignedUrlTtlMinutes;
+
   public String upload(String claimNumber, MultipartFile file) {
     String s3Key = generateFileKey(claimNumber, file);
     ObjectMetadata metadata =
@@ -35,6 +38,7 @@ public class S3StorageServiceImpl implements StorageService {
             .build();
     try {
       s3Template.upload(bucketName, s3Key, file.getInputStream(), metadata);
+      log.info("File uploaded to storage (S3) successfully. claimNumber: {}", claimNumber);
     } catch (IOException e) {
       throw new StorageServiceException(
           ErrorCode.STORAGE_SERVICE_ERROR, "Something went wrong when reading file");
@@ -71,7 +75,9 @@ public class S3StorageServiceImpl implements StorageService {
 
   public String getPresignedUrl(String fileKey) {
     try {
-      return s3Template.createSignedGetURL(bucketName, fileKey, Duration.ofMinutes(45)).toString();
+      return s3Template
+          .createSignedGetURL(bucketName, fileKey, Duration.ofMinutes(presignedUrlTtlMinutes))
+          .toString();
     } catch (S3Exception e) {
       throw new StorageServiceException(
           ErrorCode.STORAGE_SERVICE_ERROR, "Something went wrong when getting presign url");

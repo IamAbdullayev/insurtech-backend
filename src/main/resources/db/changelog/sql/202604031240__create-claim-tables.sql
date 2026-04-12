@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS claim_file
     type               VARCHAR(20)  NOT NULL,
     file_key           VARCHAR(255) NOT NULL,
     original_file_name VARCHAR(255) NOT NULL,
-    size               BIGINT       NOT NULL ,
+    size               BIGINT       NOT NULL,
     content_type       VARCHAR(255) NOT NULL,
     status             VARCHAR(20)  NOT NULL,
     created_at         TIMESTAMPTZ  NOT NULL,
@@ -47,13 +47,15 @@ CREATE TABLE IF NOT EXISTS claim_estimation
 (
     id             UUID           PRIMARY KEY,
     claim_id       UUID           NOT NULL UNIQUE,
-    ai_confidence  FLOAT          NOT NULL,
-    estimated_cost DECIMAL(15, 2) NOT NULL,
+    ai_confidence  FLOAT,
+    estimated_cost DECIMAL(15, 2),
     raw_response   TEXT,
-    status         VARCHAR(20)    NOT NULL ,
+    status         VARCHAR(20)    NOT NULL,
+    attempt_count  INT            NOT NULL,
     created_at     TIMESTAMPTZ    NOT NULL,
+    updated_at     TIMESTAMPTZ,
 
     CONSTRAINT fk_claim_estimation_claim_id FOREIGN KEY (claim_id) REFERENCES claim (id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS claim_estimation_claim_id_idx ON claim_file (claim_id)
+CREATE INDEX IF NOT EXISTS claim_estimation_claim_id_idx ON claim_estimation (claim_id)

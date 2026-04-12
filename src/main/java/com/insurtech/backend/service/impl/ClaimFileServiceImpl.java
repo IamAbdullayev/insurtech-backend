@@ -18,11 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-
 /*
-* FIXME: Add scheduler for retry the next cases: stale UPLOADING | FAILED_UPLOAD | FAILED_DELETE
-*
-* */
+ * FIXME: Add scheduler for retry the next cases: stale UPLOADING | FAILED_UPLOAD | FAILED_DELETE
+ *
+ * */
 
 @Slf4j
 @Service
@@ -70,9 +69,10 @@ public class ClaimFileServiceImpl implements ClaimFileService {
       claimFile.setFileKey(fileKey);
       claimFile.setUploadedAt(Instant.now(clock));
       claimFile.setStatus(ClaimFileStatus.UPLOADED);
-      log.info("File uploaded. claimFileId: {} | FILE_KEY: {}", claimFile.getId(), fileKey);
+      claimFileRepository.save(claimFile);
     } catch (Exception e) {
       claimFile.setStatus(ClaimFileStatus.FAILED_UPLOAD);
+      claimFileRepository.save(claimFile);
       log.error(
           "File upload failed - record marked FAILED_UPLOAD for retry. claimFileId: {} | fileName: {}",
           claimFile.getId(),
@@ -91,21 +91,19 @@ public class ClaimFileServiceImpl implements ClaimFileService {
 
     if (claimFile.getFileKey() == null || claimFile.getFileKey().isBlank()) {
       claimFile.setStatus(ClaimFileStatus.DELETED);
+      claimFileRepository.save(claimFile);
       log.info("Claim file marked DELETED (no storage key). claimFileId: {}", claimFile.getId());
       return true;
     }
 
     try {
       storageService.delete(claimFile.getFileKey());
-      log.info(
-          "Claim file deleted from storage. claimFileId: {} | fileKey: {}",
-          claimFile.getId(),
-          claimFile.getFileKey());
-
       claimFile.setStatus(ClaimFileStatus.DELETED);
+      claimFileRepository.save(claimFile);
       return true;
     } catch (Exception e) {
       claimFile.setStatus(ClaimFileStatus.FAILED_DELETE);
+      claimFileRepository.save(claimFile);
       log.error(
           "Storage deletion failed. claimFileId: {} | fileKey: {}",
           claimFile.getId(),

@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class TokenCleanUpTasks {
+public class TokenCleanUpJobs {
 
   private final RefreshTokenRepository refreshTokenRepository;
 
