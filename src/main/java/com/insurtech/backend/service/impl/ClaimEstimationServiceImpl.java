@@ -59,16 +59,13 @@ public class ClaimEstimationServiceImpl implements ClaimEstimationService {
 
     try {
       shouldCallAI = txService.markProcessing(job.getId());
-      log.info(
-          "ESTIMATION_PROCESSING | estimationStatus: {} | shouldCallAI: {}",
-          job.getStatus(),
-          shouldCallAI);
     } catch (Exception ex) {
       log.error("ESTIMATION_FAILED | claimId: {}", claimId, ex);
       txService.saveFailure(job.getId(), ex.getMessage());
       throw ex;
     }
 
+    log.warn("CALL_AI | shouldCallAi | {} ", shouldCallAI);
     if (shouldCallAI) callAI(job.getId(), claimId);
   }
 
@@ -92,13 +89,13 @@ public class ClaimEstimationServiceImpl implements ClaimEstimationService {
     } catch (RestClientResponseException ex) {
       txService.saveFailure(
           estimationId, "HTTP " + ex.getStatusCode() + " | " + ex.getResponseBodyAsString());
-      throw new AIServiceException(ErrorCode.AI_SERVICE_ERROR, "AI service error", ex);
+      throw new AIServiceException(ErrorCode.AI_SERVICE_ERROR, "AI service error: " + ex.getMessage());
     } catch (ResourceAccessException ex) {
       txService.saveFailure(estimationId, "Timeout / unreachable");
-      throw new AIServiceException(ErrorCode.AI_SERVICE_ERROR, "AI service unavailable", ex);
+      throw new AIServiceException(ErrorCode.AI_SERVICE_ERROR, "AI service unavailable: " + ex.getMessage());
     } catch (Exception ex) {
       txService.saveFailure(estimationId, ex.getMessage());
-      throw new AIServiceException(ErrorCode.AI_SERVICE_ERROR, ex.getMessage(), ex);
+      throw new AIServiceException(ErrorCode.AI_SERVICE_ERROR, "Something went wrong when AI call: " + ex.getMessage());
     }
   }
 

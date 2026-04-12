@@ -43,9 +43,10 @@ public class ClaimEstimationJobs {
         log.info("ESTIMATION_RETRY | estimationId: {}", job.getId());
       } catch (Exception ex) {
         log.warn(
-            "ESTIMATION_RETRY_ERROR | estimationId: {} | retryCount: {}",
+            "ESTIMATION_RETRY_ERROR | estimationId: {} | attemptCount: {} | error: {}",
             job.getId(),
-            job.getAttemptCount());
+            job.getAttemptCount(),
+            ex.getMessage());
       }
     }
   }

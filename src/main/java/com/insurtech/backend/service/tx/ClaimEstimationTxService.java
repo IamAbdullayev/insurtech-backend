@@ -53,7 +53,7 @@ public class ClaimEstimationTxService {
     job.setStatus(ClaimEstimationStatus.ESTIMATING);
     job.setAttemptCount(job.getAttemptCount() + 1);
     claimEstimationRepository.save(job);
-    log.info("ESTIMATION_PROCESSING | {}", estimationId);
+    log.info("ESTIMATION_PROCESSING | estimationStatus: {} |", job.getStatus());
     return true;
   }
 
