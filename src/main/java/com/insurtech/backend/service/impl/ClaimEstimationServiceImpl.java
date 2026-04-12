@@ -8,9 +8,13 @@ import com.insurtech.backend.domain.enums.ClaimFileType;
 import com.insurtech.backend.domain.enums.ClaimStatus;
 import com.insurtech.backend.dto.ai.request.AIAnalysisRequest;
 import com.insurtech.backend.dto.ai.response.AIAnalysisResponse;
+import com.insurtech.backend.dto.api.response.ClaimEstimationResponse;
 import com.insurtech.backend.dto.api.response.ClaimFileResponse;
 import com.insurtech.backend.exception.AIServiceException;
+import com.insurtech.backend.exception.NotFoundException;
 import com.insurtech.backend.exception.handler.ErrorCode;
+import com.insurtech.backend.mapper.ClaimEstimationMapper;
+import com.insurtech.backend.repository.ClaimEstimationRepository;
 import com.insurtech.backend.repository.ClaimRepository;
 import com.insurtech.backend.service.ClaimEstimationService;
 import com.insurtech.backend.service.ClaimFileService;
@@ -33,12 +37,34 @@ public class ClaimEstimationServiceImpl implements ClaimEstimationService {
 
   private final ClaimEstimationTxService txService;
   private final ClaimRepository claimRepository;
+  private final ClaimEstimationRepository claimEstimationRepository;
   private final ClaimFileService claimFileService;
   private final StorageService storageService;
   private final AIAnalysisClient aIAnalysisClient;
+  private final ClaimEstimationMapper claimEstimationMapper;
 
   @Value("${spring.cloud.aws.s3.presigned-url.ttl-minutes:15}")
   private int presignedUrlTtlMinutes;
+
+  public ClaimEstimationResponse getByClaimNumber(String claimNumber) {
+    Claim claim =
+        claimRepository
+            .findByClaimNumber(claimNumber)
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        ErrorCode.NOT_FOUND,
+                        "Claim with the claimNumber: " + claimNumber + " not found"));
+
+    return claimEstimationMapper.toResponse(
+        claimEstimationRepository
+            .findByClaim_Id(claim.getId())
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        ErrorCode.NOT_FOUND,
+                        "ClaimEstimation with the claimId: " + claim.getId() + " not found")));
+  }
 
   @Override
   public void estimate(UUID claimId) {
