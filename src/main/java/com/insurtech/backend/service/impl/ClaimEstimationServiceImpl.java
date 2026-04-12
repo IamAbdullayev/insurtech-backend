@@ -3,7 +3,6 @@ package com.insurtech.backend.service.impl;
 import com.insurtech.backend.client.AIAnalysisClient;
 import com.insurtech.backend.domain.entity.Claim;
 import com.insurtech.backend.domain.entity.ClaimEstimation;
-import com.insurtech.backend.domain.enums.ClaimEstimationStatus;
 import com.insurtech.backend.domain.enums.ClaimFileStatus;
 import com.insurtech.backend.domain.enums.ClaimFileType;
 import com.insurtech.backend.domain.enums.ClaimStatus;
@@ -60,7 +59,10 @@ public class ClaimEstimationServiceImpl implements ClaimEstimationService {
 
     try {
       shouldCallAI = txService.markProcessing(job.getId());
-      log.info("ESTIMATION_PROCESSING | estimationStatus: {} | shouldCallAI: {}", job.getStatus(), shouldCallAI);
+      log.info(
+          "ESTIMATION_PROCESSING | estimationStatus: {} | shouldCallAI: {}",
+          job.getStatus(),
+          shouldCallAI);
     } catch (Exception ex) {
       log.error("ESTIMATION_FAILED | claimId: {}", claimId, ex);
       txService.saveFailure(job.getId(), ex.getMessage());

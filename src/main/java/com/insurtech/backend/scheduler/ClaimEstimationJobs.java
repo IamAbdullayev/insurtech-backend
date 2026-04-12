@@ -58,7 +58,9 @@ public class ClaimEstimationJobs {
 
     List<ClaimEstimation> jobs =
         claimEstimationRepository.findStuckEstimations(
-            List.of(ClaimEstimationStatus.ESTIMATING, ClaimEstimationStatus.PENDING), stuckThreshold, limit);
+            List.of(ClaimEstimationStatus.ESTIMATING, ClaimEstimationStatus.PENDING),
+            stuckThreshold,
+            limit);
 
     for (ClaimEstimation job : jobs) {
       job.setStatus(ClaimEstimationStatus.ESTIMATION_FAILED);
